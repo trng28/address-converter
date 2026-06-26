@@ -10,11 +10,11 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
 DEFAULT_ADDRESS = (
-    "Sun Ponte Residence \u0110\u00e0 N\u1eb5ng, "
-    "\u0110\u01b0\u1eddng Tr\u1ea7n H\u01b0ng \u0110\u1ea1o, "
-    "Ph\u01b0\u1eddng An H\u1ea3i Nam, "
-    "Qu\u1eadn S\u01a1n Tr\u00e0, "
-    "\u0110\u00e0 N\u1eb5ng"
+    "Sun Ponte Residence Đà Nẵng, "
+    "Đường Trần Hưng Đạo, "
+    "Phường An Hải Nam, "
+    "Quận Sơn Trà, "
+    "Đà Nẵng"
 )
 
 
