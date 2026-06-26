@@ -178,17 +178,14 @@ print(result["converted_new"])
 
 ## Project Structure
 
-```text
-.
-+-- main.py
-+-- requirements.txt
-+-- README.md
-+-- src/
-    +-- __init__.py
-    +-- conversion.py
-    +-- converter.py
-    +-- data.py
-    +-- normalize.py
-    +-- text.py
-    +-- utils.py
+```
+└── 📁src
+    ├── __init__.py
+    ├── constants.py
+    ├── conversion.py
+    ├── converter.py
+    ├── data.py
+    ├── normalize.py
+    ├── text.py
+    └── utils.py
 ```
