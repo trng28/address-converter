@@ -1,24 +1,38 @@
 # Vietnam Administrative Address Converter
 
-Convert Vietnamese administrative addresses between the old structure (`province / district / ward`) and the new structure (`province / ward`) following the 2025 administrative merger.
+Convert Vietnamese administrative addresses from the old `province / district / ward` structure to the 2025 normalized `province / ward` structure.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
-[![Dataset](https://img.shields.io/badge/HuggingFace-vietnam--address--collection-FFD21E?style=flat-square)](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+[![Dataset](https://img.shields.io/badge/HuggingFace-vietnam--address--collection-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
 [![CI](https://github.com/trng28/address-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/trng28/address-converter/actions/workflows/ci.yml)
 
 ---
 
-## What it does
+## Features
 
-- Vietnam's 2025 administrative reform removed the district level nationwide and merged or renamed many wards.
-- This tool parses free-form addresses in the old format and maps them to the new administrative structure.
-- It supports both single-address conversion and batch CSV normalization.
+- Parse free-form Vietnamese addresses in the old administrative format.
+- Convert old province/district/ward references into the new province/ward format.
+- Normalize large CSV datasets in streaming mode.
+- Reuse an in-memory converter with caching for better batch performance.
+
+---
+
+## Package Name
+
+- PyPI distribution: `vietnam-address-converter`
+- Python import: `vietnam_address_converter`
+- CLI command: `vietnam-address-converter`
 
 ---
 
 ## Installation
 
+### From source
+
 ```bash
+git clone https://github.com/trng28/address-converter.git
+cd address-converter
+
 python -m venv .venv
 
 # macOS / Linux
@@ -27,40 +41,41 @@ source .venv/bin/activate
 # Windows PowerShell
 .\.venv\Scripts\Activate.ps1
 
+pip install -e .
+```
+
+### From PyPI
+
+```bash
+pip install vietnam-address-converter
+```
+
+### Development-only test dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## Usage
+## CLI Usage
 
-### Single address
+### Convert one address
 
 ```bash
-python main.py --address "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh"
+vietnam-address-converter --address "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh"
 ```
 
-### Batch CSV
-
-Download the dataset:
+### Run as a module
 
 ```bash
-pip install huggingface_hub
-python -c "
-from huggingface_hub import hf_hub_download
-hf_hub_download(
-    repo_id='trucmtnguyen/vietnam-address-collection',
-    filename='vietnam_full_address.csv',
-    repo_type='dataset',
-    local_dir='data/'
-)
-"
+python -m vietnam_address_converter --address "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh"
 ```
 
-Run conversion:
+### Convert a CSV file
 
 ```bash
-python main.py \
+vietnam-address-converter \
   --input-csv data/vietnam_full_address.csv \
   --output-csv data/vietnam_full_address.converted.csv \
   --address-column full_address \
@@ -75,23 +90,55 @@ index,full_address,street,ward,district,city,full_address_new
 
 ---
 
+## Python API
+
+```python
+from vietnam_address_converter import auto_convert_address, create_converter
+
+result = auto_convert_address(
+    "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh"
+)
+
+converter = create_converter()
+batch_result = converter.auto_convert_address(
+    "Quốc lộ 91C, Xã Đa Phước, Huyện An Phú, Tỉnh An Giang"
+)
+```
+
+---
+
+## Dataset
+
+This project uses the public dataset:
+
+- [trucmtnguyen/vietnam-address-collection](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+
+Download example:
+
+```bash
+pip install huggingface_hub
+python -c "
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+    repo_id='trucmtnguyen/vietnam-address-collection',
+    filename='vietnam_full_address.csv',
+    repo_type='dataset',
+    local_dir='data/'
+)
+"
+```
+
+---
+
 ## Performance
 
-Validated on **79,931** real addresses from the full [vietnam-address-collection](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection) dataset.
+Validated on **79,931** real addresses from the full dataset.
 
 ![Performance Summary](docs/assets/performance-summary.svg)
-
 ![Conversion Outcomes](docs/assets/conversion-outcomes.svg)
-
 ![Remap Rate by Administrative Unit Type](docs/assets/unit-type-remap.svg)
-
-Township units (`thị trấn`) show the highest remap rate, which aligns with the reform pattern where many townships were merged into communes or elevated to ward status.
-
 ![Top Provinces by Ward Remap Rate](docs/assets/top-provinces-remap.svg)
-
 ![Unresolved Addresses by Province](docs/assets/unresolved-by-province.svg)
-
-The remaining unresolved addresses are concentrated in provinces where boundary changes were most extensive and the mapping coverage is still incomplete.
 
 ---
 
@@ -105,7 +152,12 @@ address-converter/
 ├── docs/
 │   └── assets/
 ├── src/
+│   ├── vietnam_address_converter/  # installable Python package
+│   ├── batch.py                    # compatibility wrappers for old imports
+│   ├── converter.py
+│   └── ...
 ├── tests/
+├── pyproject.toml
 ├── main.py
 ├── README.md
 └── requirements.txt
@@ -113,21 +165,11 @@ address-converter/
 
 ---
 
-## Dataset
+## Release Flow
 
-This project uses the Vietnam address dataset published by [Truc Nguyen](https://huggingface.co/trucmtnguyen) on Hugging Face.
-
-- [trucmtnguyen/vietnam-address-collection](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
-
-```bibtex
-@dataset{nguyen2026vietnam_address,
-  author    = {Nguyen, Truc},
-  title     = {Vietnam Address Collection},
-  year      = {2026},
-  publisher = {Hugging Face},
-  url       = {https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection}
-}
-```
+- CI runs on every push and pull request.
+- Create a tag like `v0.1.0` to trigger the release workflow.
+- Release artifacts include both `.whl` and `.tar.gz`.
 
 ---
 
