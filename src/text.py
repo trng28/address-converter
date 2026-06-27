@@ -279,21 +279,27 @@ def _match_comma_separated_text(
 
 def _find_admin_start_index(text: str) -> Optional[int]:
     """Find where the administrative suffix starts in original text."""
+    # Multi-word variants MUST come before single-word to avoid partial match
     admin_words = (
-        "ph\u01b0\u1eddng|phuong|x\u00e3|xa|"
-        "th\u1ecb tr\u1ea5n|thi tran|qu\u1eadn|quan|"
-        "huy\u1ec7n|huyen|th\u1ecb x\u00e3|thi xa|"
-        "t\u1ec9nh|tinh|th\u00e0nh ph\u1ed1|thanh pho|tp"
+        r"thị\s+trấn|thi\s+tran"
+        r"|thị\s+xã|thi\s+xa"
+        r"|thành\s+phố|thanh\s+pho"
+        r"|phường|phuong"
+        r"|quận|quan"
+        r"|huyện|huyen"
+        r"|tỉnh|tinh"
+        r"|thị|thi"
+        r"|xã|xa"
+        r"|\btp\b"
     )
     match = re.search(
-        rf"(?:^|[\s,])({admin_words})\s+",
+        rf"(?:^|(?<=[\s,]))({admin_words})(?=\s)",
         text,
         flags=re.IGNORECASE | re.UNICODE,
     )
     if not match:
         return None
-    return match.start() + (1 if match.group(0).startswith((" ", ",")) else 0)
-
+    return match.start()
 
 def _match_substring_text(
     text: Any,
