@@ -1,26 +1,6 @@
-from __future__ import annotations
+from .vietnam_address_converter import constants as _impl
+from .vietnam_address_converter.constants import *  # noqa: F401,F403
 
-PARSER_VERSION = "1.0.0"
 
-DEFAULT_OPTIONS = {
-    "allowBroadMatch": False,
-    "multiple": "all",
-    "strict": False,
-}
-
-ADMIN_PREFIXES = [
-    "thanh pho",
-    "tinh",
-    "quan",
-    "huyen",
-    "thi xa",
-    "phuong",
-    "xa",
-    "thi tran",
-    "tt",
-    "tx",
-    "x",
-    "tp",
-    "q",
-    "p",
-]
+def __getattr__(name: str):
+    return getattr(_impl, name)
