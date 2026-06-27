@@ -17,6 +17,18 @@ from .utils import elapsed_ms, now_ms, unique
 ConvertFunc = Callable[[Dict[str, Any], Optional[Dict[str, Any]]], Dict[str, Any]]
 
 
+def _index_aliases(
+    index: Dict[str, Set[int]],
+    aliases: Set[str],
+    candidate_index: int,
+) -> None:
+    """Map each alias string to the candidate indexes that use it."""
+    for alias in aliases:
+        if not alias:
+            continue
+        index.setdefault(alias, set()).add(candidate_index)
+
+
 def _create_aliases(record: Optional[Dict[str, Any]], fallback: str = "") -> Set[str]:
     """Create normalized aliases for one administrative record."""
     values = [
@@ -76,10 +88,54 @@ def _build_text_candidates(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     return candidates
 
 
+def _build_candidate_search_index(
+    candidates: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Build lookup tables so text parsing does not scan every candidate."""
+    province_index: Dict[str, Set[int]] = {}
+    district_index: Dict[str, Set[int]] = {}
+    ward_index: Dict[str, Set[int]] = {}
+    normalized_path_index: Dict[str, List[int]] = {}
+
+    for candidate_index, candidate in enumerate(candidates):
+        _index_aliases(
+            province_index,
+            candidate.get("province_aliases") or set(),
+            candidate_index,
+        )
+        _index_aliases(
+            district_index,
+            candidate.get("district_aliases") or set(),
+            candidate_index,
+        )
+        _index_aliases(
+            ward_index,
+            candidate.get("ward_aliases") or set(),
+            candidate_index,
+        )
+        normalized_path = candidate.get("normalized_path") or ""
+        if normalized_path:
+            normalized_path_index.setdefault(normalized_path, []).append(candidate_index)
+
+    return {
+        "candidates": candidates,
+        "province_aliases": province_index,
+        "district_aliases": district_index,
+        "ward_aliases": ward_index,
+        "normalized_paths": normalized_path_index,
+    }
+
+
 @lru_cache(maxsize=1)
 def _text_candidates() -> List[Dict[str, Any]]:
     """Return cached old-format text candidates for the default data set."""
     return _build_text_candidates(DEFAULT_DATA)
+
+
+@lru_cache(maxsize=1)
+def _text_candidate_index() -> Dict[str, Any]:
+    """Return cached old-format text candidate lookup tables."""
+    return _build_candidate_search_index(_text_candidates())
 
 
 def _build_new_text_candidates(data: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -118,6 +174,12 @@ def _new_text_candidates() -> List[Dict[str, Any]]:
     return _build_new_text_candidates(DEFAULT_DATA)
 
 
+@lru_cache(maxsize=1)
+def _new_text_candidate_index() -> Dict[str, Any]:
+    """Return cached new-format text candidate lookup tables."""
+    return _build_candidate_search_index(_new_text_candidates())
+
+
 def _split_address_tokens(text: Any) -> List[Dict[str, str]]:
     """Split comma-separated address text into normalized token payloads."""
     return [
@@ -134,6 +196,16 @@ def _split_address_tokens(text: Any) -> List[Dict[str, str]]:
 def _alias_matches(aliases: Set[str], token: Dict[str, str]) -> bool:
     """Return whether a token matches either strict or loose aliases."""
     return token["key"] in aliases or token["loose_key"] in aliases
+
+
+def _candidate_ids_for_token(
+    alias_index: Dict[str, Set[int]],
+    token: Dict[str, str],
+) -> Set[int]:
+    """Return candidate indexes matching either strict or loose token keys."""
+    matches = set(alias_index.get(token["key"], set()))
+    matches.update(alias_index.get(token["loose_key"], set()))
+    return matches
 
 
 def _create_match(
@@ -160,6 +232,30 @@ def _create_match(
         "source": source,
         "remaining_text": remaining_text,
     }
+
+
+def _pick_better_match(
+    current: Optional[Dict[str, Any]],
+    candidate: Dict[str, Any],
+    level: str,
+    score: int,
+    token_start: Optional[int],
+    token_count: Optional[int],
+    tokens: List[Dict[str, str]],
+    source: str,
+) -> Dict[str, Any]:
+    """Keep only the highest-scoring match and build it lazily."""
+    if current is not None and current["score"] >= score:
+        return current
+    return _create_match(
+        candidate,
+        level,
+        score,
+        token_start,
+        token_count,
+        tokens,
+        source,
+    )
 
 
 def _add_comma_matches(
@@ -262,11 +358,17 @@ def _add_comma_matches(
 def _match_comma_separated_text(
     text: Any,
     candidates: List[Dict[str, Any]],
+    search_index: Optional[Dict[str, Any]] = None,
 ) -> Optional[Dict[str, Any]]:
     """Find the best administrative match from comma-separated text."""
     tokens = _split_address_tokens(text)
     if not tokens:
         return None
+
+    if search_index:
+        indexed = _match_comma_separated_text_indexed(tokens, search_index)
+        if indexed:
+            return indexed
 
     matches = []
     for candidate in candidates:
@@ -277,9 +379,153 @@ def _match_comma_separated_text(
     return sorted(matches, key=lambda item: item["score"], reverse=True)[0]
 
 
+def _match_comma_separated_text_indexed(
+    tokens: List[Dict[str, str]],
+    search_index: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Find the best comma-token match using alias indexes instead of scans."""
+    best = None
+    candidates = search_index["candidates"]
+    province_aliases = search_index["province_aliases"]
+    district_aliases = search_index["district_aliases"]
+    ward_aliases = search_index["ward_aliases"]
+
+    for index in range(len(tokens)):
+        remaining = len(tokens) - index
+        province_ids = _candidate_ids_for_token(province_aliases, tokens[index])
+        if province_ids:
+            for candidate_index in province_ids:
+                best = _pick_better_match(
+                    best,
+                    candidates[candidate_index],
+                    "province_name",
+                    1000 + index,
+                    index,
+                    1,
+                    tokens,
+                    "comma",
+                )
+
+        if remaining < 2:
+            continue
+
+        ward_ids = _candidate_ids_for_token(ward_aliases, tokens[index])
+        district_ids = _candidate_ids_for_token(district_aliases, tokens[index])
+        province_next_ids = _candidate_ids_for_token(province_aliases, tokens[index + 1])
+
+        for candidate_index in district_ids & province_next_ids:
+            best = _pick_better_match(
+                best,
+                candidates[candidate_index],
+                "province_district_name",
+                2000 + index,
+                index,
+                2,
+                tokens,
+                "comma",
+            )
+
+        for candidate_index in ward_ids & province_next_ids:
+            candidate = candidates[candidate_index]
+            score = 2400 + index if candidate.get("district_aliases") else 2500 + index
+            best = _pick_better_match(
+                best,
+                candidate,
+                "province_ward_name",
+                score,
+                index,
+                2,
+                tokens,
+                "comma",
+            )
+
+        if remaining < 3:
+            continue
+
+        district_next_ids = _candidate_ids_for_token(
+            district_aliases,
+            tokens[index + 1],
+        )
+        province_third_ids = _candidate_ids_for_token(
+            province_aliases,
+            tokens[index + 2],
+        )
+        for candidate_index in ward_ids & district_next_ids & province_third_ids:
+            best = _pick_better_match(
+                best,
+                candidates[candidate_index],
+                "province_district_ward_name",
+                3000 + index,
+                index,
+                3,
+                tokens,
+                "comma",
+            )
+
+    return best
+
+
+def _match_normalized_admin_suffix(
+    text: Any,
+    search_index: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Match normalized administrative suffix directly via a path lookup."""
+    original = str(text)
+    start = _find_admin_start_index(original)
+    if start is None:
+        return None
+
+    admin_text = original[start:].strip()
+    normalized_admin = normalize_address_text(admin_text)
+    if not normalized_admin:
+        return None
+
+    candidate_indexes = search_index["normalized_paths"].get(normalized_admin, [])
+    if not candidate_indexes:
+        return None
+
+    candidate = search_index["candidates"][candidate_indexes[0]]
+    return {
+        "candidate": candidate,
+        "input": candidate["input"],
+        "level": "province_district_ward_name"
+        if candidate.get("district_aliases")
+        else "province_ward_name",
+        "score": 3999,
+        "token_start": None,
+        "token_count": None,
+        "source": "substring",
+        "remaining_text": re.sub(r"[\s,]+$", "", original[0:start].strip()),
+    }
+
+
 def _find_admin_start_index(text: str) -> Optional[int]:
     """Find where the administrative suffix starts in original text."""
     # Multi-word variants MUST come before single-word to avoid partial match
+    admin_words = (
+        r"thị\s+trấn|thi\s+tran"
+        r"|thị\s+xã|thi\s+xa"
+        r"|thành\s+phố|thanh\s+pho"
+        r"|phường|phuong"
+        r"|quận|quan"
+        r"|huyện|huyen"
+        r"|tỉnh|tinh"
+        r"|thị|thi"
+        r"|xã|xa"
+        r"|\btp\b"
+    )
+    match = re.search(
+        rf"(?:^|(?<=[\s,]))({admin_words})(?=\s)",
+        text,
+        flags=re.IGNORECASE | re.UNICODE,
+    )
+    if not match:
+        return None
+    return match.start()
+
+
+def _find_admin_start_index(text: str) -> Optional[int]:
+    """Find where the administrative suffix starts in original text."""
     admin_words = (
         r"thị\s+trấn|thi\s+tran"
         r"|thị\s+xã|thi\s+xa"
@@ -463,13 +709,19 @@ def parse_address_text(
         if data is DEFAULT_DATA
         else _build_text_candidates(data)
     )
+    search_index = (
+        _text_candidate_index()
+        if data is DEFAULT_DATA
+        else _build_candidate_search_index(candidates)
+    )
 
     if not isinstance(text, str) or not text.strip():
         return _empty_old_parse(text, started_at, data)
 
-    match = _match_comma_separated_text(text, candidates) or _match_substring_text(
-        text,
-        candidates,
+    match = (
+        _match_comma_separated_text(text, candidates, search_index)
+        or _match_normalized_admin_suffix(text, search_index)
+        or _match_substring_text(text, candidates)
     )
     if not match:
         return _not_found_old_parse(text, started_at, data)
@@ -572,13 +824,19 @@ def parse_new_address_text(
         if data is DEFAULT_DATA
         else _build_new_text_candidates(data)
     )
+    search_index = (
+        _new_text_candidate_index()
+        if data is DEFAULT_DATA
+        else _build_candidate_search_index(candidates)
+    )
 
     if not isinstance(text, str) or not text.strip():
         return _empty_new_parse(text, started_at, data)
 
-    match = _match_comma_separated_text(text, candidates) or _match_substring_text(
-        text,
-        candidates,
+    match = (
+        _match_comma_separated_text(text, candidates, search_index)
+        or _match_normalized_admin_suffix(text, search_index)
+        or _match_substring_text(text, candidates)
     )
     if not match:
         return _not_found_new_parse(text, started_at, data)
