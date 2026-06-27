@@ -1,49 +1,48 @@
 # Vietnam Administrative Address Converter
 
-Convert Vietnamese administrative addresses between the old and new administrative structures.
+Convert Vietnamese administrative addresses between the old structure (province / district / ward) and the new structure (province / ward) following the 2025 administrative merger.
 
-The converter can parse free-form address text, detect whether it looks like an old or new address, and return normalized province/ward conversion data as JSON.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+[![Dataset](https://img.shields.io/badge/HuggingFace-vietnam--address--collection-FFD21E?style=flat-square)](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+
+---
 
 ## Features
 
-- Convert old province/district/ward addresses to the new province/ward structure.
-- Parse free-form address text from the command line.
-- Return structured JSON with parsed input, converted output, mapping data, confidence, and warnings.
-- Run with the Python standard library only.
+- **Free-form address parsing** - accepts any address string and automatically detects old or new administrative structure.
+- **Old-to-new conversion** - maps province / district / ward from the pre-merger structure to the new administrative units.
+- **Structured JSON output** - returns normalized address text, mapping data, confidence score, and warnings.
+- **Batch processing** - converts entire address files with a configurable LRU cache.
+
+
+---
 
 ## Installation
 
-Create a virtual environment:
-
-```powershell
-python -m venv .venv
-```
-
-Activate it on Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Activate it on macOS or Linux:
-
 ```bash
+python -m venv .venv
+
+# macOS / Linux
 source .venv/bin/activate
-```
 
-Install requirements:
+# Windows PowerShell
+.\.venv\Scripts\Activate.ps1
 
-```powershell
 pip install -r requirements.txt
 ```
 
-## Command Line Usage
+---
 
-```python
-python main.py --address "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh" 
+## Usage
+
+### Single address
+
+```bash
+python main.py --address "Đường Trần Não, Phường Thảo Điền, TP Thủ Đức, Thành phố Hồ Chí Minh"
 ```
 
-Shortened output:
+<details>
+<summary>View full JSON output</summary>
 
 ```json
 {
@@ -60,132 +59,121 @@ Shortened output:
   "converted_new": {
     "province": {
       "name": "Hồ Chí Minh",
-      "slug": "ho-chi-minh",
-      "type": "thanh-pho",
       "name_with_type": "Thành phố Hồ Chí Minh",
       "code": "12"
     },
     "ward": {
       "name": "An Khánh",
-      "type": "phuong",
-      "slug": "an-khanh",
       "name_with_type": "Phường An Khánh",
-      "path": "An Khánh, Hồ Chí Minh",
       "path_with_type": "Phường An Khánh, Thành phố Hồ Chí Minh",
-      "code": "11020",
-      "parent_code": "12"
+      "code": "11020"
     }
   },
   "conversion": {
     "status": "matched",
-    "match_level": "province_district_ward_name",
-    "input": {
-      "province_name": "Thành Phố Hồ Chí Minh",
-      "district_name": "Thành Phố Thủ Đức",
-      "ward_name": "Phường Thảo Điền",
-      "province_code": "12",
-      "district_code": "4876",
-      "ward_code": "1774348"
-    },
-    "old": {
-      "province": {
-        "name": "Hồ Chí Minh",
-        "slug": "ho-chi-minh",
-        "type": "thanh-pho",
-        "name_with_type": "Thành Phố Hồ Chí Minh",
-        "code": "12"
-      },
-      "district": {
-        "name": "Thủ Đức",
-        "slug": "thu-duc",
-        "type": "thanh-pho",
-        "name_with_type": "Thành Phố Thủ Đức",
-        "code": "4876",
-        "parent_code": "12",
-        "path": "Thủ Đức, Hồ Chí Minh",
-        "path_with_type": "Thành Phố Thủ Đức, Thành phố Hồ Chí Minh"
-      },
-      "ward": {
-        "name": "Thảo Điền",
-        "slug": "thao-dien",
-        "type": "phuong",
-        "name_with_type": "Phường Thảo Điền",
-        "path": "Thảo Điền, Thủ Đức, Hồ Chí Minh",
-        "path_with_type": "Phường Thảo Điền, Thành Phố Thủ Đức, Thành phố Hồ Chí Minh",
-        "code": "1774348",
-        "parent_code": "4876"
-      }
-    },
-    "result": {
-      "new_province": {
-        "name": "Hồ Chí Minh",
-        "slug": "ho-chi-minh",
-        "type": "thanh-pho",
-        "name_with_type": "Thành phố Hồ Chí Minh",
-        "code": "12"
-      },
-      "new_ward": {
-        "name": "An Khánh",
-        "type": "phuong",
-        "slug": "an-khanh",
-        "name_with_type": "Phường An Khánh",
-        "path": "An Khánh, Hồ Chí Minh",
-        "path_with_type": "Phường An Khánh, Thành phố Hồ Chí Minh",
-        "code": "11020",
-        "parent_code": "12"
-      },
-      "mapping": {
-        "old_province_code": "12",
-        "old_district_code": "4876",
-        "old_ward_code": "1774348",
-        "new_province_code": "12",
-        "new_ward_code": "11020",
-        "row_indexes": [
-          893
-        ]
-      },
-      "warnings": []
-    },
-    "candidates": [],
-    "warnings": [],
     "confidence": 0.98,
-    "match_strategy": "code_or_name_with_code_filter",
-    "normalized_text": "ho chi minh|thu duc|thao dien",
-    "meta": {
-      "parser_version": "1.0.0",
-      "mapping_version": "10_25",
-      "elapsed_ms": 0.207,
-      "warnings": []
-    }
-  },
-  "old_candidates": [],
-  "old_first": null
+    "match_level": "province_district_ward_name",
+    "warnings": []
+  }
 }
 ```
 
-## Python Usage
+</details>
 
-```python
-from src import auto_convert_address
+### Batch CSV
 
-result = auto_convert_address(
-    "Phuong An Hai Nam, Quan Son Tra, Da Nang"
+**Step 1 - Download the dataset**
+
+```bash
+pip install huggingface_hub
+python -c "
+from huggingface_hub import hf_hub_download
+hf_hub_download(
+    repo_id='trucmtnguyen/vietnam-address-collection',
+    filename='vietnam_full_address.csv',
+    repo_type='dataset',
+    local_dir='data/'
 )
-
-print(result["input_type"])
-print(result["converted_new"])
+"
 ```
+
+Dataset: [trucmtnguyen/vietnam-address-collection](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+
+**Step 2 - Run conversion**
+
+```bash
+python main.py \
+  --input-csv  data/vietnam_full_address.csv \
+  --output-csv data/vietnam_full_address.converted.csv \
+  --address-column full_address \
+  --cache-size 4096
+```
+
+```json
+{
+  "status": "ok",
+  "input_csv": "data/vietnam_full_address.csv",
+  "output_csv": "data/vietnam_full_address.converted.csv",
+  "address_column": "full_address",
+  "cache_size": 4096,
+  "rows_written": 79931
+}
+```
+
+---
 
 ## Project Structure
 
 ```
-└── 📁src
+address-converter/
+├── main.py
+├── requirements.txt
+└── src/
     ├── __init__.py
-    ├── constants.py
-    ├── conversion.py
-    ├── converter.py
-    ├── data.py
-    ├── normalize.py
-    ├── text.py
-    └── utils.py
+    ├── constants.py       # Configuration and constants
+    ├── conversion.py      # Old-to-new mapping logic
+    ├── converter.py       # Main conversion entrypoint
+    ├── data.py            # Administrative data loading and caching
+    ├── normalize.py       # Text normalization (diacritics, lowercase)
+    ├── text.py            # Free-form address parser
+    └── utils.py           # Shared utilities
 ```
+
+---
+
+## JSON Response Reference
+
+| Field | Description |
+|-------|-------------|
+| `input_type` | `"old"` or `"new"` - detected address structure |
+| `normalized_text` | Normalized address string after conversion |
+| `parsed` | Resolved province / district / ward from the input |
+| `converted_new` | Corresponding new administrative units |
+| `conversion.status` | `"matched"` / `"partial"` / `"unmatched"` |
+| `conversion.confidence` | Match confidence score (0.0 - 1.0) |
+| `conversion.match_level` | Granularity of match: `province_district_ward_name`, … |
+| `conversion.warnings` | List of warnings, if any |
+
+---
+
+## Dataset
+
+This project uses the Vietnam address dataset published by [Truc Nguyen](https://huggingface.co/trucmtnguyen) on Hugging Face.
+
+[trucmtnguyen/vietnam-address-collection](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+
+```bibtex
+@dataset{nguyen2026vietnam_address,
+  author    = {Nguyen, Truc},
+  title     = {Vietnam Address Collection},
+  year      = {2026},
+  publisher = {Hugging Face},
+  url       = {https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection}
+}
+```
+
+---
+
+## License
+
+Apache 2.0 © [trng28](https://github.com/trng28)
