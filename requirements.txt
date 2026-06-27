@@ -1,1 +1,2 @@
-# No third-party dependencies.
+# Runtime has no third-party dependencies.
+pytest>=8.0,<9.0
