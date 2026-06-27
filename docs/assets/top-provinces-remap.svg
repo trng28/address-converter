@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" width="900" height="420">
+  <rect width="900" height="420" fill="#ffffff"/>
+  <text x="20" y="34" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">Top 10 provinces by ward remap rate</text>
+  <text x="20" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#64748b">Percentage of addresses where ward changed, by province</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#0f172a">
+    <text x="20" y="98">Lâm Đồng</text><rect x="180" y="84" width="492" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="98">94.6%</text>
+    <text x="20" y="130">Vĩnh Phúc</text><rect x="180" y="116" width="492" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="130">94.6%</text>
+    <text x="20" y="162">Quảng Nam</text><rect x="180" y="148" width="484" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="162">93.0%</text>
+    <text x="20" y="194">Bạc Liêu</text><rect x="180" y="180" width="479" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="194">92.1%</text>
+    <text x="20" y="226">Đồng Tháp</text><rect x="180" y="212" width="472" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="226">90.7%</text>
+    <text x="20" y="258">Tây Ninh</text><rect x="180" y="244" width="458" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="258">88.1%</text>
+    <text x="20" y="290">Phú Yên</text><rect x="180" y="276" width="453" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="290">87.2%</text>
+    <text x="20" y="322">Quảng Trị</text><rect x="180" y="308" width="452" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="322">87.1%</text>
+    <text x="20" y="354">Long An</text><rect x="180" y="340" width="451" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="354">86.9%</text>
+    <text x="20" y="386">Quảng Bình</text><rect x="180" y="372" width="449" height="16" rx="4" fill="#bfdbfe"/><text x="690" y="386">86.5%</text>
+  </g>
+</svg>

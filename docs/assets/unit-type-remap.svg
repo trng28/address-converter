@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 230" width="900" height="230">
+  <rect width="900" height="230" fill="#ffffff"/>
+  <text x="20" y="34" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">Remap rate by administrative unit type</text>
+  <text x="20" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#64748b">Percent of addresses where ward name changed after conversion</text>
+  <text x="20" y="106" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#0f172a">Thị trấn</text>
+  <rect x="180" y="92" width="520" height="22" rx="5" fill="#e2e8f0"/>
+  <rect x="180" y="92" width="465" height="22" rx="5" fill="#2563eb"/>
+  <text x="715" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">89.4%</text>
+  <text x="785" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#64748b">3,610 rows</text>
+  <text x="20" y="152" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#0f172a">Xã</text>
+  <rect x="180" y="138" width="520" height="22" rx="5" fill="#e2e8f0"/>
+  <rect x="180" y="138" width="392" height="22" rx="5" fill="#3b82f6"/>
+  <text x="715" y="154" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">75.4%</text>
+  <text x="785" y="154" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#64748b">17,972 rows</text>
+  <text x="20" y="198" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#0f172a">Phường</text>
+  <rect x="180" y="184" width="520" height="22" rx="5" fill="#e2e8f0"/>
+  <rect x="180" y="184" width="378" height="22" rx="5" fill="#60a5fa"/>
+  <text x="715" y="200" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">72.6%</text>
+  <text x="785" y="200" font-family="Segoe UI, Arial, sans-serif" font-size="13" fill="#64748b">58,348 rows</text>
+</svg>

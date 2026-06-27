@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" width="900" height="280">
+  <rect width="900" height="280" fill="#ffffff"/>
+  <text x="20" y="34" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">Unresolved addresses by province</text>
+  <text x="20" y="58" font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#64748b">1,193 total — could not find a matching new ward</text>
+  <g font-family="Segoe UI, Arial, sans-serif" font-size="14" fill="#0f172a">
+    <text x="20" y="104">Thừa Thiên Huế</text><rect x="220" y="90" width="520" height="18" rx="4" fill="#fee2e2"/><text x="760" y="104">568 · 47.6%</text>
+    <text x="20" y="140">Bình Định</text><rect x="220" y="126" width="416" height="18" rx="4" fill="#fecaca"/><text x="760" y="140">454 · 38.1%</text>
+    <text x="20" y="176">Bà Rịa - Vũng Tàu</text><rect x="220" y="162" width="81" height="18" rx="4" fill="#fca5a5"/><text x="760" y="176">88 · 7.4%</text>
+    <text x="20" y="212">Bắc Giang</text><rect x="220" y="198" width="34" height="18" rx="4" fill="#f87171"/><text x="760" y="212">37 · 3.1%</text>
+    <text x="20" y="248">Ninh Bình + others</text><rect x="220" y="234" width="42" height="18" rx="4" fill="#ef4444"/><text x="760" y="248">46 · 3.8%</text>
+  </g>
+</svg>
