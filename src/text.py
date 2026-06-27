@@ -547,6 +547,53 @@ def _find_admin_start_index(text: str) -> Optional[int]:
         return None
     return match.start()
 
+
+def _find_admin_start_index(text: str) -> Optional[int]:
+    """Find where the administrative suffix starts in original text."""
+    if not text or not str(text).strip():
+        return None
+
+    admin_prefix = re.compile(
+        r"^(?:"
+        r"thị\s+trấn|thi\s+tran"
+        r"|thị\s+xã|thi\s+xa"
+        r"|thành\s+phố|thanh\s+pho"
+        r"|phường|phuong"
+        r"|quận|quan"
+        r"|huyện|huyen"
+        r"|tỉnh|tinh"
+        r"|thị|thi"
+        r"|xã|xa"
+        r"|tp"
+        r")\s+",
+        flags=re.IGNORECASE | re.UNICODE,
+    )
+
+    text_value = str(text)
+    for match in re.finditer(r"(^|,)\s*", text_value):
+        token_start = match.end()
+        token = text_value[token_start:].lstrip()
+        if not token:
+            continue
+
+        token_start += len(text_value[token_start:]) - len(token)
+        prefix_match = admin_prefix.match(token)
+        if not prefix_match:
+            continue
+
+        remainder = token[prefix_match.end() :].lstrip()
+        if not remainder:
+            continue
+
+        first_char = remainder[0]
+        if not (first_char.isupper() or first_char.isdigit()):
+            continue
+
+        return token_start
+
+    return None
+
+
 def _match_substring_text(
     text: Any,
     candidates: List[Dict[str, Any]],
