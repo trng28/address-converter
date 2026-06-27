@@ -4,6 +4,7 @@ Convert Vietnamese administrative addresses between the old structure (province 
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
 [![Dataset](https://img.shields.io/badge/HuggingFace-vietnam--address--collection-FFD21E?style=flat-square)](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
+[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
 
 ---
 
@@ -128,6 +129,7 @@ python main.py \
 address-converter/
 ├── main.py
 ├── requirements.txt
+├── data/
 └── src/
     ├── __init__.py
     ├── constants.py       # Configuration and constants
