@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vietnam-address-converter"
-version = "0.1.0"
+version = "1.0.2"
 description = "Convert Vietnamese administrative addresses from the old district-based format to the 2025 normalized structure."
 readme = "README.md"
 requires-python = ">=3.10"
