@@ -20,10 +20,10 @@ from typing import Optional
 
 import pytest
 
-from src.converter import create_converter
-from src.data import DEFAULT_DATA
-from src.normalize import normalize_address_text
-from src.text import _find_admin_start_index
+from vietnam_address_converter.converter import create_converter
+from vietnam_address_converter.data import DEFAULT_DATA
+from vietnam_address_converter.normalize import normalize_address_text
+from vietnam_address_converter.text import _find_admin_start_index
 
 # helpers 
 
