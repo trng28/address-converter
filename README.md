@@ -1,8 +1,9 @@
-# Vietnam Administrative Address Converter
+# Vietnam Administrative Address Converter Toolkit
 
 Convert Vietnamese administrative addresses from the old `province / district / ward` structure to the 2025 normalized `province / ward` structure.
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org)
+[![PyPI Version](https://img.shields.io/pypi/v/vietnam-address-converter?style=flat-square&logo=pypi&logoColor=white&label=vietnam-address-converter)](https://pypi.org/project/vietnam-address-converter/)
 [![Dataset](https://img.shields.io/badge/HuggingFace-vietnam--address--collection-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co/datasets/trucmtnguyen/vietnam-address-collection)
 [![CI](https://github.com/trng28/address-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/trng28/address-converter/actions/workflows/ci.yml)
 
