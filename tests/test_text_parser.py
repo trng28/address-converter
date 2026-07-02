@@ -282,6 +282,37 @@ class TestParseOldAddressText:
         assert province.get("code") == "12"
         assert ward.get("code") == "34828"
 
+    @pytest.mark.parametrize(
+        ("street", "province_name", "old_ward_code", "new_ward_code"),
+        [
+            ("Duong cao toc Can Tho - Ca Mau", "TP Can Tho", "197135", "4111"),
+            ("Quoc lo 1", "Tinh Hau Giang", "131599", "3855"),
+            ("Tinh lo 925", "Tinh Hau Giang", "131599", "3855"),
+            ("Duong 2 Thang 9", "Tinh Hau Giang", "131599", "3855"),
+        ],
+    )
+    def test_can_tho_cai_rang_resolves_with_correct_or_wrong_province(
+        self,
+        converter,
+        street,
+        province_name,
+        old_ward_code,
+        new_ward_code,
+    ) -> None:
+        ward_name = "Phuong Tan Phu" if old_ward_code == "197135" else "Phuong Ba Lang"
+        text = f"{street}, {ward_name}, Quan Cai Rang, {province_name}"
+        result = converter.convert_address_text(text, {"multiple": "first"})
+        parsed = result.get("parsed") or {}
+        converted = result.get("converted") or {}
+        ward = converted.get("ward") or {}
+        province = converted.get("province") or {}
+
+        assert parsed.get("province_code") == "15"
+        assert parsed.get("district_code") == "527"
+        assert parsed.get("ward_code") == old_ward_code
+        assert province.get("code") == "15"
+        assert ward.get("code") == new_ward_code
+
     def test_result_has_parsed_key(self, converter) -> None:
         row = DEFAULT_DATA["mapping"]["rows"][0]
         result = converter.parse_address_text(_old_row_text(row))

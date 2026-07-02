@@ -129,8 +129,19 @@ def _get_indexes_by_input(
                 for district_name_variant in district_names
             ],
         )
+        district_ward_indexes = _intersect_indexes(
+            [
+                _intersect_name_indexes(
+                    indexes,
+                    "by_old_district_name",
+                    district_names,
+                ),
+                indexes.get("by_old_ward_name", {}).get(ward_name, []),
+            ]
+        )
         groups.append(
             exact_indexes
+            or district_ward_indexes
             or _intersect_indexes(
                 [
                     _intersect_name_indexes(
@@ -142,9 +153,12 @@ def _get_indexes_by_input(
                 ]
             )
         )
-        match_level = (
-            "province_district_ward_name" if exact_indexes else "province_ward_name"
-        )
+        if exact_indexes:
+            match_level = "province_district_ward_name"
+        elif district_ward_indexes:
+            match_level = "district_ward_name"
+        else:
+            match_level = "province_ward_name"
     else:
         if province_name and district_name:
             groups.append(
