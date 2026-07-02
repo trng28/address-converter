@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 
 from .constants import DEFAULT_OPTIONS, PARSER_VERSION
 from .data import DEFAULT_DATA
-from .normalize import normalize_vietnamese_name
+from .normalize import get_normalized_name_variants, normalize_vietnamese_name
 from .utils import elapsed_ms, now_ms, to_code, unique
 
 
@@ -86,12 +86,21 @@ def _intersect_indexes(groups: List[List[int]]) -> List[int]:
     return sorted(result)
 
 
+def _indexes_for_names(index: Dict[str, List[int]], names: List[str]) -> List[int]:
+    """Return unique row indexes for any normalized name variant."""
+    result: List[int] = []
+    for name in names:
+        result.extend(index.get(name, []))
+    return sorted(set(result))
+
+
 def _get_indexes_by_input(
     input_: Dict[str, Any],
     mapping: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Find candidate mapping row indexes for old address input."""
     province_name = normalize_vietnamese_name(input_.get("province_name"))
+    province_names = get_normalized_name_variants(input_.get("province_name"))
     district_name = normalize_vietnamese_name(input_.get("district_name"))
     ward_name = normalize_vietnamese_name(input_.get("ward_name"))
     province_code = to_code(input_.get("province_code"))
@@ -103,24 +112,33 @@ def _get_indexes_by_input(
 
     if province_name and district_name and ward_name:
         groups.append(
-            indexes.get("by_old_name_path", {}).get(
-                f"{province_name}|{district_name}|{ward_name}",
-                [],
+            _indexes_for_names(
+                indexes.get("by_old_name_path", {}),
+                [
+                    f"{province_name_variant}|{district_name}|{ward_name}"
+                    for province_name_variant in province_names
+                ],
             )
         )
         match_level = "province_district_ward_name"
     else:
         if province_name and district_name:
             groups.append(
-                indexes.get("by_old_province_district", {}).get(
-                    f"{province_name}|{district_name}",
-                    [],
+                _indexes_for_names(
+                    indexes.get("by_old_province_district", {}),
+                    [
+                        f"{province_name_variant}|{district_name}"
+                        for province_name_variant in province_names
+                    ],
                 )
             )
             match_level = "province_district_name"
         elif province_name:
             groups.append(
-                indexes.get("by_old_province_name", {}).get(province_name, [])
+                _indexes_for_names(
+                    indexes.get("by_old_province_name", {}),
+                    province_names,
+                )
             )
             match_level = "province_name"
         if district_name:

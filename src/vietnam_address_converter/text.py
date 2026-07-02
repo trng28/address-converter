@@ -9,6 +9,7 @@ from .conversion import convert_old_to_new
 from .data import DEFAULT_DATA
 from .normalize import (
     get_comparable_names,
+    get_normalized_name_variants,
     normalize_address_text,
     normalize_vietnamese_name,
 )
@@ -29,7 +30,11 @@ def _index_aliases(
         index.setdefault(alias, set()).add(candidate_index)
 
 
-def _create_aliases(record: Optional[Dict[str, Any]], fallback: str = "") -> Set[str]:
+def _create_aliases(
+    record: Optional[Dict[str, Any]],
+    fallback: str = "",
+    include_admin_aliases: bool = False,
+) -> Set[str]:
     """Create normalized aliases for one administrative record."""
     values = [
         *get_comparable_names(record),
@@ -38,6 +43,12 @@ def _create_aliases(record: Optional[Dict[str, Any]], fallback: str = "") -> Set
         normalize_address_text((record or {}).get("name_with_type")),
         normalize_address_text(fallback),
     ]
+    if include_admin_aliases:
+        values.extend(
+            variant
+            for value in list(values)
+            for variant in get_normalized_name_variants(value)
+        )
     return set(unique(values))
 
 
@@ -79,7 +90,11 @@ def _build_text_candidates(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         candidates.append(
             {
                 "input": input_,
-                "province_aliases": _create_aliases(province, input_["province_name"]),
+                "province_aliases": _create_aliases(
+                    province,
+                    input_["province_name"],
+                    include_admin_aliases=True,
+                ),
                 "district_aliases": _create_aliases(district, input_["district_name"]),
                 "ward_aliases": _create_aliases(ward, input_["ward_name"]),
                 "normalized_path": normalize_address_text(path),
@@ -160,7 +175,11 @@ def _build_new_text_candidates(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "input": input_,
                 "new_province": province,
                 "new_ward": ward,
-                "province_aliases": _create_aliases(province, input_["province_name"]),
+                "province_aliases": _create_aliases(
+                    province,
+                    input_["province_name"],
+                    include_admin_aliases=True,
+                ),
                 "ward_aliases": _create_aliases(ward, input_["ward_name"]),
                 "normalized_path": normalize_address_text(path),
             }

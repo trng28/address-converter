@@ -24,3 +24,7 @@ ADMIN_PREFIXES = [
     "q",
     "p",
 ]
+
+ADMIN_NAME_ALIASES_BY_CANONICAL = {
+    "hue": ["thua thien hue"],
+}

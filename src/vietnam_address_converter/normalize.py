@@ -4,7 +4,7 @@ import re
 import unicodedata
 from typing import Any, Dict, List, Optional
 
-from .constants import ADMIN_PREFIXES
+from .constants import ADMIN_NAME_ALIASES_BY_CANONICAL, ADMIN_PREFIXES
 from .utils import unique
 
 
@@ -43,6 +43,23 @@ def normalize_address_text(value: Any) -> str:
     for prefix in ADMIN_PREFIXES:
         normalized = re.sub(rf"(^|\s){re.escape(prefix)}(?=\s|$)", " ", normalized)
     return re.sub(r"\s+", " ", normalized).strip()
+
+
+def get_normalized_name_variants(value: Any) -> List[str]:
+    """Return normalized name variants, including known administrative aliases."""
+    normalized = normalize_vietnamese_name(value)
+    if not normalized:
+        return []
+
+    variants = [normalized]
+    for canonical, aliases in ADMIN_NAME_ALIASES_BY_CANONICAL.items():
+        canonical_name = normalize_vietnamese_name(canonical)
+        alias_names = [normalize_vietnamese_name(alias) for alias in aliases]
+        if normalized == canonical_name or normalized in alias_names:
+            variants.append(canonical_name)
+            variants.extend(alias for alias in alias_names if alias)
+
+    return unique(variants)
 
 
 def get_comparable_names(record: Optional[Dict[str, Any]]) -> List[str]:
