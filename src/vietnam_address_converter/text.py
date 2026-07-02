@@ -312,6 +312,24 @@ def _add_comma_matches(
 
     if (
         has_district
+        and remaining >= 3
+        and _alias_matches(candidate["ward_aliases"], tokens[index])
+        and _alias_matches(candidate["province_aliases"], tokens[index + 2])
+    ):
+        matches.append(
+            _create_match(
+                candidate,
+                "province_ward_name",
+                2450 + index,
+                index,
+                3,
+                tokens,
+                "comma",
+            )
+        )
+
+    if (
+        has_district
         and remaining >= 2
         and _alias_matches(candidate["district_aliases"], tokens[index])
         and _alias_matches(candidate["province_aliases"], tokens[index + 1])
@@ -479,6 +497,18 @@ def _match_comma_separated_text_indexed(
                 candidates[candidate_index],
                 "province_district_ward_name",
                 3000 + index,
+                index,
+                3,
+                tokens,
+                "comma",
+            )
+
+        for candidate_index in ward_ids & province_third_ids:
+            best = _pick_better_match(
+                best,
+                candidates[candidate_index],
+                "province_ward_name",
+                2450 + index,
                 index,
                 3,
                 tokens,

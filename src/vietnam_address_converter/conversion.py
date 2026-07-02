@@ -94,6 +94,15 @@ def _indexes_for_names(index: Dict[str, List[int]], names: List[str]) -> List[in
     return sorted(set(result))
 
 
+def _intersect_name_indexes(
+    indexes: Dict[str, Any],
+    index_name: str,
+    names: List[str],
+) -> List[int]:
+    """Return row indexes for any normalized name in the selected mapping index."""
+    return _indexes_for_names(indexes.get(index_name, {}), names)
+
+
 def _get_indexes_by_input(
     input_: Dict[str, Any],
     mapping: Dict[str, Any],
@@ -112,17 +121,30 @@ def _get_indexes_by_input(
     match_level = None
 
     if province_name and district_name and ward_name:
+        exact_indexes = _indexes_for_names(
+            indexes.get("by_old_name_path", {}),
+            [
+                f"{province_name_variant}|{district_name_variant}|{ward_name}"
+                for province_name_variant in province_names
+                for district_name_variant in district_names
+            ],
+        )
         groups.append(
-            _indexes_for_names(
-                indexes.get("by_old_name_path", {}),
+            exact_indexes
+            or _intersect_indexes(
                 [
-                    f"{province_name_variant}|{district_name_variant}|{ward_name}"
-                    for province_name_variant in province_names
-                    for district_name_variant in district_names
-                ],
+                    _intersect_name_indexes(
+                        indexes,
+                        "by_old_province_name",
+                        province_names,
+                    ),
+                    indexes.get("by_old_ward_name", {}).get(ward_name, []),
+                ]
             )
         )
-        match_level = "province_district_ward_name"
+        match_level = (
+            "province_district_ward_name" if exact_indexes else "province_ward_name"
+        )
     else:
         if province_name and district_name:
             groups.append(

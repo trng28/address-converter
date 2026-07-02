@@ -257,6 +257,31 @@ class TestParseOldAddressText:
         assert province.get("code") == "30"
         assert ward.get("code") == "2078"
 
+    @pytest.mark.parametrize(
+        "street",
+        [
+            "Duong Bien Hoa - Vung Tau Expressway",
+            "Duong Tap doan 7 Phuoc Binh",
+        ],
+    )
+    def test_ba_ria_vung_tau_uses_unique_province_ward_when_district_is_wrong(
+        self,
+        converter,
+        street,
+    ) -> None:
+        text = f"{street}, Phuong Phu My, Huyen Long Thanh, Tinh Ba Ria Vung Tau"
+        result = converter.convert_address_text(text, {"multiple": "first"})
+        parsed = result.get("parsed") or {}
+        converted = result.get("converted") or {}
+        ward = converted.get("ward") or {}
+        province = converted.get("province") or {}
+
+        assert parsed.get("province_code") == "17"
+        assert parsed.get("district_code") == "1809"
+        assert parsed.get("ward_code") == "67345"
+        assert province.get("code") == "12"
+        assert ward.get("code") == "34828"
+
     def test_result_has_parsed_key(self, converter) -> None:
         row = DEFAULT_DATA["mapping"]["rows"][0]
         result = converter.parse_address_text(_old_row_text(row))
