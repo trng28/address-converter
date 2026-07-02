@@ -95,7 +95,11 @@ def _build_text_candidates(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     input_["province_name"],
                     include_admin_aliases=True,
                 ),
-                "district_aliases": _create_aliases(district, input_["district_name"]),
+                "district_aliases": _create_aliases(
+                    district,
+                    input_["district_name"],
+                    include_admin_aliases=True,
+                ),
                 "ward_aliases": _create_aliases(ward, input_["ward_name"]),
                 "normalized_path": normalize_address_text(path),
             }

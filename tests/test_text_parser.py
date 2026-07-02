@@ -243,6 +243,20 @@ class TestParseOldAddressText:
         assert province.get("code") == "16"
         assert ward.get("code") == "2064"
 
+    def test_binh_thuan_accepts_phu_quy_island_district_alias(self, converter) -> None:
+        text = "Duong Nguyen Thi Minh Khai, Xa Ngu Phung, Huyen Dao Phu Quy, Tinh Binh Thuan"
+        result = converter.convert_address_text(text, {"multiple": "first"})
+        parsed = result.get("parsed") or {}
+        converted = result.get("converted") or {}
+        ward = converted.get("ward") or {}
+        province = converted.get("province") or {}
+
+        assert parsed.get("province_code") == "26"
+        assert parsed.get("district_code") == "1818"
+        assert parsed.get("ward_code") == "132890"
+        assert province.get("code") == "30"
+        assert ward.get("code") == "2078"
+
     def test_result_has_parsed_key(self, converter) -> None:
         row = DEFAULT_DATA["mapping"]["rows"][0]
         result = converter.parse_address_text(_old_row_text(row))

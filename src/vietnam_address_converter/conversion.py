@@ -102,6 +102,7 @@ def _get_indexes_by_input(
     province_name = normalize_vietnamese_name(input_.get("province_name"))
     province_names = get_normalized_name_variants(input_.get("province_name"))
     district_name = normalize_vietnamese_name(input_.get("district_name"))
+    district_names = get_normalized_name_variants(input_.get("district_name"))
     ward_name = normalize_vietnamese_name(input_.get("ward_name"))
     province_code = to_code(input_.get("province_code"))
     district_code = to_code(input_.get("district_code"))
@@ -115,8 +116,9 @@ def _get_indexes_by_input(
             _indexes_for_names(
                 indexes.get("by_old_name_path", {}),
                 [
-                    f"{province_name_variant}|{district_name}|{ward_name}"
+                    f"{province_name_variant}|{district_name_variant}|{ward_name}"
                     for province_name_variant in province_names
+                    for district_name_variant in district_names
                 ],
             )
         )
@@ -127,8 +129,9 @@ def _get_indexes_by_input(
                 _indexes_for_names(
                     indexes.get("by_old_province_district", {}),
                     [
-                        f"{province_name_variant}|{district_name}"
+                        f"{province_name_variant}|{district_name_variant}"
                         for province_name_variant in province_names
+                        for district_name_variant in district_names
                     ],
                 )
             )
@@ -143,7 +146,10 @@ def _get_indexes_by_input(
             match_level = "province_name"
         if district_name:
             groups.append(
-                indexes.get("by_old_district_name", {}).get(district_name, [])
+                _indexes_for_names(
+                    indexes.get("by_old_district_name", {}),
+                    district_names,
+                )
             )
             match_level = match_level or "district_name"
         if ward_name:
